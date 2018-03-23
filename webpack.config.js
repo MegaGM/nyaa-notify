@@ -10,6 +10,9 @@ function resolve(dir) {
 
 let plugins = [
   new ExtractTextPlugin('[name].css'),
+  new webpack.SourceMapDevToolPlugin({
+    filename: '[file].map'
+  }),
 ]
 
 const env = process.env.NODE_ENV
@@ -29,7 +32,7 @@ module.exports = [{
     bundle: './src/entry.js',
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'bundles'),
     filename: '[name].js'
   },
   resolve: {
