@@ -14,9 +14,17 @@
     "watch": "NODE_ENV=development ./node_modules/.bin/webpack -w"
   },
   "build": {
-    "appId": "com.nyaa.notify",
+    "appId": "org.mega.nyaanotify",
     "productName": "NyaaNotify!",
-    "target": "deb"
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "category": "Science"
+    },
+    "win": {
+      "target": "NSIS"
+    }
   },
   "repository": {
     "type": "git",
@@ -31,11 +39,10 @@
   "dependencies": {
     "axios": "^0.18.0",
     "bluebird": "^3.5.1",
-    "electron": "^1.8.4",
+    "conf": "^1.4.0",
     "fast-xml-parser": "^3.3.6",
     "fs-extra": "^5.0.0",
-    "vue": "^2.5.13",
-    "vue-router": "^3.0.1"
+    "lodash": "^4.17.5"
   },
   "devDependencies": {
     "babel-core": "*",
@@ -46,6 +53,7 @@
     "babel-preset-es2015": "*",
     "babel-preset-stage-2": "^6.24.1",
     "css-loader": "*",
+    "electron": "^1.8.4",
     "extract-text-webpack-plugin": "*",
     "file-loader": "*",
     "friendly-errors-webpack-plugin": "^1.6.1",
@@ -54,7 +62,9 @@
     "postcss-url": "^7.3.0",
     "style-loader": "*",
     "url-loader": "*",
+    "vue": "^2.5.13",
     "vue-loader": "*",
+    "vue-router": "^3.0.1",
     "vue-style-loader": "*",
     "vue-template-compiler": "*",
     "vuetify": "*",
