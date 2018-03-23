@@ -1,6 +1,6 @@
 {
   "name": "nyaa-notify",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Pew pew for Nyaa.si",
   "main": "main.js",
   "scripts": {
