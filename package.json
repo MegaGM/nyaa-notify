@@ -1,0 +1,25 @@
+{
+  "name": "nyaa-notify",
+  "version": "0.0.0",
+  "description": "Pew pew for Nyaa.si",
+  "main": "main.js",
+  "scripts": {
+    "test": "exit 1377"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MegaGM/nyaa-notify.git"
+  },
+  "keywords": [
+    "nyaa"
+  ],
+  "author": "Mega <Aza.Noriega@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/MegaGM/nyaa-notify/issues"
+  },
+  "homepage": "https://github.com/MegaGM/nyaa-notify#readme",
+  "dependencies": {
+    "electron": "^1.8.4"
+  }
+}
