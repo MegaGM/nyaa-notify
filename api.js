@@ -1,19 +1,13 @@
-let store = new (require('conf'))({
-  cwd: process.cwd(),
-  configName: 'database',
-})
-console.info(store)
+'use strict'
+
 const
   Promise = require('bluebird'),
   fs = require('fs-extra'),
   axios = require('axios'),
-  fastXmlParser = require('fast-xml-parser'),
-  version = require('./package.json').version
-// headers = {
-//   'User-Agent': `NyaaNotify v${version}`,
-// }
+  fastXmlParser = require('fast-xml-parser')
 
-console.info(`NyaaNotify v${version}`)
+let API = { fetchQuery }
+export default API
 
 export function fetchQuery(q) {
   let uri = 'https://nyaa.si/?f=0&c=1_2&page=rss&q=' + q
@@ -21,7 +15,6 @@ export function fetchQuery(q) {
     .then(r => fastXmlParser.parse(r.data))
     .then(json => {
       let items = json.rss.channel.item
-      console.info(items)
       return items
     })
 }
