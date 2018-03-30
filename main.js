@@ -18,6 +18,8 @@ function createWindow() {
     skipTaskbar: false,
     // kiosk: true,
     // icon: 'sf',
+    width: 700,
+    height: 640,
   })
 
   hwnd.maximize()
