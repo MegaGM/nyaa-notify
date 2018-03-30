@@ -53,6 +53,7 @@
     "babel-preset-es2015": "*",
     "babel-preset-stage-2": "^6.24.1",
     "css-loader": "*",
+    "devtron": "^1.4.0",
     "electron": "^1.8.4",
     "extract-text-webpack-plugin": "*",
     "file-loader": "*",
