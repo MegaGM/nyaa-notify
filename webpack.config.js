@@ -23,7 +23,8 @@ module.exports = [{
   stats: {
     children: false,
   },
-  target: 'node',
+  // target: 'node',
+  target: 'electron-renderer',
   node: {
     fs: 'empty',
     // querystring: 'empty',
