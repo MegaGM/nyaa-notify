@@ -1,36 +1,106 @@
 'use strict'
 
-let hwnd
 const
   path = require('path'),
   url = require('url'),
-  { app, BrowserWindow } = require('electron')
+  qCycle = require('q-cycle'),
+  { exec } = require('child_process'),
+  { download } = require('electron-dl'),
+  { app, BrowserWindow, ipcMain } = require('electron')
+let
+  w, // BrowserWindow
+  cycle = new qCycle({ stepTime: 5, debug: false }),
+  store = new(require('conf'))({
+    // cwd: app.getPath('userData'),
+    configName: 'database',
+    suffix: '',
+  })
+if (!store.has('db'))
+  store.set('db', {})
+if (!store.has('db.anime'))
+  store.set('db.anime', [])
 
-app.on('ready', createWindow)
+app.commandLine.appendSwitch('ignore-gpu-blacklist')
+app.on('ready', () => {
+  app.makeSingleInstance(() => {})
+  // require('devtron').install()
+  // console.info('appData: ', app.getPath('appData'))
+  // console.info('getGPUFeatureStatus: ', app.getGPUFeatureStatus())
+  // console.info('userData: ', app.getPath('userData'))
+  // console.info('getAppPath: ', app.getAppPath())
+  // console.info('getVersion: ', app.getVersion())
+  // console.info('getLocale: ', app.getLocale())
+  // console.info('getAppMetrics: ', app.getAppMetrics())
+  createWindow()
+  ipcMain.on('download-torrent', (event, link) => {
+    return download(BrowserWindow.getFocusedWindow(), link)
+      .then(dl => dl.getSavePath())
+      .then(torrentFile => execAsync(`./src/downloadAndOpenTorrent.sh "${torrentFile}"`))
+      .then(exitCode => {
+        event.returnValue = !exitCode
+      })
+      .catch(console.error);
+  })
+  cycle.setJob(updateRandomAnime)
+  cycle.start()
+})
 app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit())
-app.on('activate', () => hwnd === null && createWindow())
+app.on('activate', () => w === null && createWindow())
+
+function updateRandomAnime() {
+  w.webContents.send('update-random-anime')
+}
 
 function createWindow() {
-  hwnd = new BrowserWindow({
+  let wOptions = {
+    center: false,
     // frame: false,
     // transparent: true,
     autoHideMenuBar: true,
-    skipTaskbar: false,
+    // skipTaskbar: true,
     // kiosk: true,
     // icon: 'sf',
-    width: 700,
-    height: 640,
-  })
+    scrollBounce: true,
+  }
 
-  hwnd.maximize()
-  hwnd.loadURL(url.format({
+  let wBounds = store.get('db.mainWindowBounds') || {
+    x: void 0,
+    y: void 0,
+    width: 1000,
+    height: 640,
+  }
+
+  w = new BrowserWindow(Object.assign(wOptions, wBounds))
+
+  function handleBounds() {
+    store.set('db.mainWindowBounds', w.getBounds())
+  }
+  w.on('resize', handleBounds)
+  w.on('move', handleBounds)
+
+  w.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true,
   }))
 
-  hwnd.webContents.openDevTools()
+  w.once('ready-to-show', () => {
+    w.show()
+  })
 
-  hwnd.on('closed', () => hwnd = null)
+  w.webContents.openDevTools()
+
+  w.on('closed', () => w = null)
 }
-console.info('MAINJS')
+
+async function execAsync(command) {
+  let child = exec(command)
+  return new Promise((resolve, reject) => {
+    let { stdout, stderr } = child
+    stdout.on('data', console.info)
+    stderr.on('data', console.error)
+    // child.on('close', code => console.info('closing code: ' + code))
+    child.addListener('error', reject)
+    child.addListener('exit', resolve)
+  })
+}
