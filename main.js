@@ -88,7 +88,8 @@ function createWindow() {
     w.show()
   })
 
-  w.webContents.openDevTools()
+  if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase().startsWith('dev'))
+    w.webContents.openDevTools()
 
   w.on('closed', () => w = null)
 }
