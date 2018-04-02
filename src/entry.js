@@ -1,5 +1,4 @@
 'use strict'
-console.info('Hey, Start!')
 
 /**
  * CSS
@@ -11,7 +10,7 @@ require('vuetify/dist/vuetify.min.css')
  */
 import Vue from 'vue'
 import Vuetify from 'vuetify'
-import App from './App'
+import App from './App.vue'
 
 Vue.use(Vuetify)
 /**
@@ -25,4 +24,4 @@ let app = new Vue({
 
 window.app = app
 
-console.info('meow! ^_^')
+console.info('Meow! ^_^')
