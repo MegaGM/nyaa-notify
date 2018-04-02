@@ -61,6 +61,7 @@ function createWindow() {
     // kiosk: true,
     // icon: 'sf',
     scrollBounce: true,
+    icon: 'assets/icons/png/256x256.png',
   }
 
   let wBounds = store.get('db.mainWindowBounds') || {

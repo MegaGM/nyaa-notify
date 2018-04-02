@@ -6,20 +6,26 @@
   "author": "Mega <Aza.Noriega@gmail.com>",
   "homepage": "https://github.com/MegaGM/nyaa-notify#readme",
   "main": "main.js",
+  "productName": "NyaaNotify!",
   "scripts": {
     "build": "NODE_ENV=build ./node_modules/.bin/webpack",
     "dev": "NODE_ENV=development npm run watch& npm run start",
     "start": "NODE_ENV=development electron .",
     "test": "exit 1",
-    "watch": "NODE_ENV=development ./node_modules/.bin/webpack -w"
+    "watch": "NODE_ENV=development ./node_modules/.bin/webpack -w",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . nyaa-notify --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\"",
+    "package-linux": "electron-packager . nyaa-notify --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/256x256.png --prune=true --out=release-builds"
   },
   "build": {
     "appId": "org.mega.nyaanotify",
     "productName": "NyaaNotify!",
+    "icon": "assets/icons/png/256x256.png",
     "linux": {
       "target": [
         "deb"
       ],
+      "icon": "assets/icons/png/256x256.png",
       "category": "Science"
     },
     "win": {
@@ -57,6 +63,7 @@
     "css-loader": "*",
     "devtron": "^1.4.0",
     "electron": "^1.8.4",
+    "electron-packager": "^11.2.0",
     "extract-text-webpack-plugin": "*",
     "file-loader": "*",
     "friendly-errors-webpack-plugin": "^1.6.1",
