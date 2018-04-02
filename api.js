@@ -14,7 +14,7 @@ export function fetchQuery(q) {
   return axios.get(uri)
     .then(r => fastXmlParser.parse(r.data))
     .then(json => {
-      let items = json.rss.channel.item
+      let items = json.rss.channel.item || []
       return items
     })
 }
