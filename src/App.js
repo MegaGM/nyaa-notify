@@ -24,16 +24,32 @@ export default {
       searchQuality: ['720p'],
       availableQuality: ['1440p', '1080p', '720p', '480p'],
       searchResults: [],
+      qCycleInWorkWith: null,
       initialUpdatePercents: 0,
       tabs: [
         { title: 'new' },
         { title: 'all' },
         { title: 'search' },
       ],
-      pagination: {
+      paginationNewAnime: {
         sortBy: 'time',
         descending: true,
-        'rppi': [12, 25, { text: 'Show All', value: -1 }],
+        'rppi': [{ text: 'Show All', value: -1 }, 12],
+      },
+      paginationQueries: {
+        sortBy: 'q',
+        descending: false,
+        'rppi': [{ text: 'Show All', value: -1 }, 12],
+      },
+      paginationAllAnime: {
+        sortBy: 'time',
+        descending: true,
+        'rppi': [12, 24, 48, { text: 'Show All', value: -1 }],
+      },
+      paginationSearch: {
+        sortBy: 'time',
+        descending: true,
+        'rppi': [12, 24, 48, { text: 'Show All', value: -1 }],
       },
     }
   },
@@ -60,7 +76,8 @@ export default {
       this.currentTab = this.db.currentTab
 
     this.searchQuality = this.db.searchQuality || ['720p']
-    this.pagination.sortBy = 'time'
+    this.paginationAllAnime.sortBy = 'time'
+    this.paginationQueries.sortBy = 'q'
 
     ipcRenderer.on('update-random-anime', this.updateRandomAnime)
     ipcRenderer.on('update-sequential-anime', this.updateAllAnimeSequential)
@@ -83,6 +100,8 @@ export default {
       let l = this.db.anime.length
       if (!l)
         return
+      if (this.qCycleInWorkWith)
+        return
 
       let
         now = (new Date()).getTime(),
@@ -99,10 +118,12 @@ export default {
       let piece = 100 / l
       this.db.anime.forEach((animeQ, index) => {
         setTimeout(() => {
+          this.qCycleInWorkWith = animeQ.q
           this.updateAnime(animeQ.q)
           this.initialUpdatePercents += piece
           if (index === l - 1) {
             this.initialUpdatePercents = 0
+            let self = this
             let notification = new NotificationFx({
               message: `<p><span class="icon"><i class="material-icons">verified_user</i></span> AnimeDB is up to date o/</p>`,
               // layout type: growl|attached|bar|other
@@ -118,6 +139,7 @@ export default {
               type: 'success', // notice, warning or error
               ttl: 2077,
               onClose: function () {
+                self.qCycleInWorkWith = null
                 console.info('AnimeDB is up to date o/')
                 return false
               },
@@ -130,6 +152,8 @@ export default {
     },
     updateAllAnimeSequential(auto) {
       if (!this.db.anime.length)
+        return
+      if (this.qCycleInWorkWith)
         return
 
       let i = +localStorage.getItem('last-updated-anime-index')
@@ -171,6 +195,16 @@ export default {
         return this.newAnime
       if (type === 'search')
         return this.searchResults
+    },
+    getPagination(type) {
+      console.info('getPagination type: ', type)
+      if (type === 'new')
+        return this.paginationNewAnime
+      if (type === 'all')
+        return this.paginationAllAnime
+      if (type === 'search')
+        return this.paginationSearch
+      return ''
     },
     getAnimeTableHeaders(type) {
       let animeTableHeaders
@@ -399,7 +433,7 @@ export default {
                 if (+itemIndex > -1) {
                   animeQ.items[itemIndex].seeds = a.seeds
                   let timesince = timeSince(a.time)
-                  animeQ.items[itemIndex].timesince = a.timesince || timesince
+                  animeQ.items[itemIndex].timesince = timesince
                 }
               })
             })

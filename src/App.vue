@@ -1,14 +1,22 @@
 <template>
 <v-app id="nyaa">
-  <v-card flat="flat"
-          dark="dark"
-          img="./assets/nyaabg.jpg"
-          color="transparent">
+  <v-card dark="dark"
+          class="nyaa-header"
+          style="background: url('./assets/nyaabg.jpg') 50% -437px no-repeat;">
+    <template v-if="initialUpdatePercents"
+              fixed="fixed"
+              bottom="bottom"
+              id="hideandseek">
+      <v-progress-linear background-color="transparent"
+                         color="accent"
+                         height="1"
+                         v-model="initialUpdatePercents"></v-progress-linear>
+    </template>
+
     <v-layout row="row"
               wrap="wrap"
               text-xs-center="text-xs-center">
-      <v-flex xs10="xs10"
-              offset-xs1="offset-xs1"
+      <v-flex xs12
               class="mt-5 mb-3">
         <v-btn flat="flat"
                color="blue"
@@ -20,7 +28,7 @@
               <b>NyaaOngoMan</b>
               =( ^^,)=
             </span>
-            <span>Forced-update-desu!!</span>
+            <span>{{this.qCycleInWorkWith || 'Forced-update-desu!!'}}</span>
           </v-tooltip>
         </v-btn>
       </v-flex>
@@ -38,62 +46,59 @@
         </v-tabs>
       </v-flex>
     </v-layout>
-    <v-card v-show="isTabActive('search')"
-            flat="flat"
-            dark="dark"
-            color="transparent">
-      <v-layout row="row"
-                wrap="wrap"
-                text-xs-center="text-xs-center">
-        <v-flex xs10="xs10"
-                offset-xs1="offset-xs1"
-                sm6="sm6"
-                offset-sm1="offset-sm1">
-          <v-text-field clearable="clearable"
-                        hide-details="hide-details"
-                        name="add-new"
-                        prepend-icon="video_library"
-                        label="Add a new anime"
-                        @keyup.enter="searchAnime"
-                        v-model="q"></v-text-field>
-        </v-flex>
-        <v-flex xs10="xs10"
-                offset-xs1="offset-xs1"
-                sm2="sm2"
-                offset-sm0="offset-sm0">
-          <v-select box="box"
-                    multiple="multiple"
-                    label="Quality"
-                    :items="availableQuality"
-                    v-model="searchQuality"
-                    @input="onChangeQuality"
-                    append-icon="switch_video"
-                    hide-details="hide-details"></v-select>
-        </v-flex>
-        <v-flex xs10="xs10"
-                offset-xs1="offset-xs1"
-                sm2="sm2"
-                offset-sm0="offset-sm0">
-          <v-btn outline="outline"
-                 fab="fab"
-                 @click="addAnime"
-                 color="white">
-            <v-icon>playlist_add</v-icon>
-          </v-btn>
-        </v-flex>
-      </v-layout>
-    </v-card>
-  </v-card>
 
-  <template v-if="initialUpdatePercents"
-            fixed="fixed"
-            bottom="bottom"
-            id="hideandseek">
-    <v-progress-linear background-color="transparent"
-                       color="accent"
-                       height="1"
-                       v-model="initialUpdatePercents"></v-progress-linear>
-  </template>
+    <transition name="slide-y-transition">
+      <v-card v-show="isTabActive('search')"
+              class="search-block"
+              flat
+              color="transparent">
+        <v-layout row="row"
+                  wrap="wrap"
+                  text-xs-center="text-xs-center">
+          <v-flex xs10="xs10"
+                  offset-xs1="offset-xs1"
+                  sm6="sm6"
+                  offset-sm1="offset-sm1">
+
+            <v-tooltip bottom="bottom">
+              <v-text-field slot="activator"
+                            clearable="clearable"
+                            hide-details="hide-details"
+                            name="add-new"
+                            prepend-icon="video_library"
+                            label="Add a new anime"
+                            @keyup.enter="searchAnime"
+                            v-model="q"></v-text-field>
+              <span>Press Enter to search</span>
+            </v-tooltip>
+          </v-flex>
+          <v-flex xs10="xs10"
+                  offset-xs1="offset-xs1"
+                  sm2="sm2"
+                  offset-sm0="offset-sm0">
+            <v-select box="box"
+                      multiple="multiple"
+                      label="Quality"
+                      :items="availableQuality"
+                      v-model="searchQuality"
+                      @input="onChangeQuality"
+                      append-icon="switch_video"
+                      hide-details="hide-details"></v-select>
+          </v-flex>
+          <v-flex xs10="xs10"
+                  offset-xs1="offset-xs1"
+                  sm2="sm2"
+                  offset-sm0="offset-sm0">
+            <v-btn @click="addAnime"
+                   color="primary"
+                   class="btn--search">
+              <v-icon>playlist_add</v-icon>ADD
+            </v-btn>
+          </v-flex>
+        </v-layout>
+      </v-card>
+    </transition>
+  </v-card>
 
   <v-tabs-items v-model="currentTab">
     <v-tab-item v-for="tab in tabs"
@@ -102,8 +107,8 @@
       <v-data-table v-if="tab.title === 'all'"
                     :headers="getAnimeTableHeaders('queries')"
                     :items="getAnime('queries')"
-                    :pagination.sync="pagination"
-                    :rows-per-page-items="pagination.rppi"
+                    :pagination.sync="paginationQueries"
+                    :rows-per-page-items="paginationQueries.rppi"
                     :rows-per-page-text="'Items per page: '"
                     class="elevation-1">
         <template slot="items"
@@ -146,8 +151,8 @@
 
       <v-data-table :headers="getAnimeTableHeaders(tab.title)"
                     :items="getAnime(tab.title)"
-                    :pagination.sync="pagination"
-                    :rows-per-page-items="pagination.rppi"
+                    :pagination.sync="paginationAllAnime"
+                    :rows-per-page-items="paginationAllAnime.rppi"
                     :rows-per-page-text="'Items per page: '"
                     class="elevation-10">
         <template slot="items"

@@ -4,6 +4,23 @@ html {
   /* overflow: auto; */
 }
 
+card.nyaa-header {
+  background: url("/assets/nyaabg.jpg") 50% -510px no-repeat !important;
+}
+
+.search-block {
+  margin: 15px 0;
+  background-color: transparent;
+}
+
+.transitionMega {
+  transition: flex 0.5s ease-in-out;
+}
+
+.btn.btn--search {
+  min-width: 0;
+}
+
 .application {
   font-family: sans-serif;
 }

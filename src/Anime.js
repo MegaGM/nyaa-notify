@@ -1,4 +1,5 @@
 'use strict'
+const timeSince = require('./timeSince')
 
 export default class Anime {
   constructor(o, opts) {
@@ -10,5 +11,6 @@ export default class Anime {
     this.q = opts.q
     this.new = opts.new
     this.downloaded = opts.downloaded
+    this.timesince = timeSince(this.time)
   }
 }
