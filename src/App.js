@@ -278,8 +278,37 @@ export default {
     },
     addAnime(e) {
       this.q = (this.q || '').toLowerCase().trim()
-      if (!this.q.length) // if empty search query
+      /**
+       * if empty search query
+       */
+      if (!this.q.length)
         return
+
+      /**
+       * gracefully refuse to add anime with no quality choosen
+       * it
+       * displays an error
+       * doesn't actually add anything
+       */
+      if (!this.searchQuality.length) {
+        let notification = new NotificationFx({
+          message: `<p><span class="icon"><i class="material-icons">error_outline</i></span> Error: at least one quality options should be present</p>`,
+          // layout type: growl|attached|bar|other
+          layout: 'growl',
+
+          // for growl layout: scale|slide|genie|jelly
+          // for attached layout: flip|bouncyflip
+          // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
+          effect: 'jelly',
+
+          // notice, warning, error, success
+          // will add class ns-type-warning, ns-type-error or ns-type-success
+          type: 'error', // notice, warning or error
+          ttl: 4088,
+        })
+        notification.show()
+        return
+      }
 
       // if such animeQ already present in db
       let qIndex = _.findIndex(this.db.anime, { q: this.q })
