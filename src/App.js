@@ -366,7 +366,6 @@ export default {
                 if (+itemIndex > -1) {
                   animeQ.items[itemIndex].seeds = a.seeds
                   let timesince = timeSince(a.time)
-                  console.info(timesince, (new Date().getTime()), a.time)
                   animeQ.items[itemIndex].timesince = a.timesince || timesince
                 }
               })
