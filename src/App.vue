@@ -1,4 +1,4 @@
-<template src="./App.html.vue">
+<template>
 <v-app id="nyaa">
   <v-card flat="flat"
           dark="dark"
