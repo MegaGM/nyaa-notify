@@ -204,11 +204,18 @@ export default {
       store.set('db', this.db)
     },
     downloadAndOpenTorrent(anime) {
-      const downloaded = ipcRenderer.sendSync('download-torrent', anime.link)
-      if (downloaded) {
-        anime.downloaded = true
-        this.dbSaveToHDD()
-      }
+      ipcRenderer.sendSync('download-torrent', anime.link)
+      this.markDownloaded(anime, true)
+    },
+    markDownloaded(anime, downloaded) {
+      let
+        qIndex = _.findIndex(this.db.anime, { q: anime.q }),
+        aIndex = _.findIndex(this.db.anime[qIndex].items, { link: anime.link })
+
+      anime.size = anime.size + ''
+      anime.downloaded = !!downloaded
+      this.db.anime[qIndex].items[aIndex] = anime
+      this.dbSaveToHDD()
     },
     toggleMark(anime) {
       anime.new = !anime.new

@@ -148,22 +148,41 @@
           <td :class="{ downloaded: props.item.downloaded }"
               v-if="!isTabActive('search')"
               class="justify-center layout px-0">
-            <v-btn icon
-                   flat
-                   class="mx-0"
-                   color="blue"
-                   @click="downloadAndOpenTorrent(props.item)">
-              <v-icon>file_download</v-icon>
-            </v-btn>
-            <v-btn icon
-                   flat
-                   class="mx-0"
-                   @click="toggleMark(props.item)">
-              <v-icon v-if="props.item.new"
-                      color="teal">bookmark_border</v-icon>
-              <v-icon v-else
-                      color="teal">bookmark</v-icon>
-            </v-btn>
+            <v-tooltip left>
+              <v-btn slot="activator"
+                     icon
+                     flat
+                     class="mx-0"
+                     color="blue"
+                     @click="downloadAndOpenTorrent(props.item)">
+                <v-icon>file_download</v-icon>
+              </v-btn>
+              <span>Mark as downloaded, and open .torrent</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-btn slot="activator"
+                     icon
+                     flat
+                     class="mx-0"
+                     color="blue"
+                     @click="markDownloaded(props.item, false)">
+                <v-icon>undo</v-icon>
+              </v-btn>
+              <span>Unmark as downloaded</span>
+            </v-tooltip>
+            <v-tooltip bottom>
+              <v-btn slot="activator"
+                     icon
+                     flat
+                     class="mx-0"
+                     @click="toggleMark(props.item)">
+                <v-icon v-if="props.item.new"
+                        color="teal">done</v-icon>
+                <v-icon v-else
+                        color="teal">done_all</v-icon>
+              </v-btn>
+              <span>(un)Mark as watched</span>
+            </v-tooltip>
           </td>
         </template>
       </v-data-table>

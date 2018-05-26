@@ -16,7 +16,10 @@ console.info('store.path: ', store.path)
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist')
 app.on('ready', () => {
+  console.info(`platform: ${process.platform}`)
+
   app.makeSingleInstance(() => {})
+
   // require('devtron').install()
   console.info('appData: ', app.getPath('appData'))
   // console.info('getGPUFeatureStatus: ', app.getGPUFeatureStatus())
@@ -25,16 +28,31 @@ app.on('ready', () => {
   // console.info('getVersion: ', app.getVersion())
   // console.info('getLocale: ', app.getLocale())
   // console.info('getAppMetrics: ', app.getAppMetrics())
-  createWindow()
+
   ipcMain.on('download-torrent', (event, link) => {
+    let command // choose platform speciefic command to open .torrent
+    switch (process.platform) {
+      case 'win32':
+        command = 'cmd /c start'
+        break;
+      case 'darwin':
+        command = 'open'
+        break;
+      case 'linux':
+      default:
+        command = 'xdg-open'
+    }
+
     return download(BrowserWindow.getFocusedWindow() || w, link)
       .then(dl => dl.getSavePath())
-      .then(torrentFile => execAsync(`./src/downloadAndOpenTorrent.sh "${torrentFile}"`))
+      .then(torrentFile => execAsync(`${command} "${torrentFile}"`))
       .then(exitCode => {
         event.returnValue = !exitCode
       })
       .catch(console.error);
   })
+
+  createWindow()
   cycle.setJob(updateSequentialAnime)
   cycle.start()
 })
@@ -42,7 +60,6 @@ app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit())
 app.on('activate', () => w === null && createWindow())
 
 function updateSequentialAnime() {
-  console.info('updateSequentialAnime')
   w.webContents.send('update-sequential-anime')
 }
 
