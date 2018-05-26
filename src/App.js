@@ -29,7 +29,7 @@ export default {
       pagination: {
         sortBy: 'time',
         descending: true,
-        'rppi': [10, 25, { text: 'Show All', value: -1 }],
+        'rppi': [12, 25, { text: 'Show All', value: -1 }],
       },
     }
   },
@@ -55,13 +55,36 @@ export default {
     this.pagination.sortBy = 'time'
 
     ipcRenderer.on('update-random-anime', this.updateRandomAnime)
+    ipcRenderer.on('update-sequential-anime', this.updateSequentialAnime)
     let l = this.db.anime.length
-    if (l > 0)
-      this.db.anime.forEach(animeQ => {
+    if (l > 0) {
+      this.db.anime.forEach((animeQ, index) => {
         setTimeout(() => {
           this.updateAnime(animeQ.q)
-        }, this.random(500, 5000))
+          if (index === l - 1) {
+            let notification = new NotificationFx({
+              message: `<span class="icon"><i class="material-icons">verified_user</i></span>
+        <p>All anime have been updated!</p>`,
+              // layout type: growl|attached|bar|other
+              layout: 'bar',
+
+              // for growl layout: scale|slide|genie|jelly
+              // for attached layout: flip|bouncyflip
+              // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
+              effect: 'slidetop',
+
+              // notice, warning, error, success
+              // will add class ns-type-warning, ns-type-error or ns-type-success
+              type: 'success', // notice, warning or error
+              ttl: 1488,
+              onClose: function () { return false; },
+              onOpen: function () { return false; }
+            })
+            notification.show()
+          }
+        }, ((index + 1) * 1000))
       })
+    }
   },
   filters: {
     humanizeTime(timestamp) {
@@ -71,16 +94,28 @@ export default {
     },
   },
   methods: {
+    updateSequentialAnime() {
+      if (!this.db.anime.length)
+        return
+
+      if (!this.lastUpdatedAnimeIndex && this.lastUpdatedAnimeIndex !== 0)
+        this.lastUpdatedAnimeIndex = -1
+
+      {++this.lastUpdatedAnimeIndex }
+      if (this.lastUpdatedAnimeIndex > this.db.anime.length)
+        this.lastUpdatedAnimeIndex = 0
+
+      this.updateAnime(this.db.anime[this.lastUpdatedAnimeIndex].q)
+    },
     updateRandomAnime(event, data) {
-      let l = this.db.anime.length
-      if (l > 0)
-        this.updateAnime(this.db.anime[this.random(0, l - 1)].q)
+      if (this.db.anime.length > 0)
+        this.updateAnime(this.db.anime[this.random(0, 1)].q)
     },
     isTabActive(title) {
       return this.currentTab === _.findIndex(this.tabs, { title }) + ''
     },
     random(min, max) {
-      return Math.floor(Math.random() * (max - min + 1) + min)
+      return Math.floor(Math.random() * max)
     },
     getAnime(type) {
       if (type === 'queries')
@@ -144,7 +179,7 @@ export default {
     downloadAndOpenTorrent(anime) {
       const downloaded = ipcRenderer.sendSync('download-torrent', anime.link)
       if (downloaded) {
-        anime.new = false
+        anime.downloaded = true
         this.dbSaveToHDD()
       }
     },
@@ -179,8 +214,29 @@ export default {
         return
       let qs = this.q + ' ' + this.currentQuality
       this.updateAnime(qs)
+
+      let notification = new NotificationFx({
+        message: `<span class="icon"><i class="material-icons">verified_user</i></span>
+        <p>${this.q} has been added!</p>`,
+        // layout type: growl|attached|bar|other
+        layout: 'bar',
+
+        // for growl layout: scale|slide|genie|jelly
+        // for attached layout: flip|bouncyflip
+        // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
+        effect: 'slidetop',
+
+        // notice, warning, error, success
+        // will add class ns-type-warning, ns-type-error or ns-type-success
+        type: 'success', // notice, warning or error
+        ttl: 1488,
+        onClose: function () { return false; },
+        onOpen: function () { return false; }
+      })
+      notification.show()
     },
     updateAnime(qs) {
+      console.info('what is qs: ', qs)
       if (this.isTabActive('search'))
         this.searchAnime()
 

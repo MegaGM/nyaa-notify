@@ -4,6 +4,18 @@
  * CSS
  */
 require('vuetify/dist/vuetify.min.css')
+require('./vendors/notificationFx/ns-default.css')
+require('./vendors/notificationFx/ns-style-attached.css')
+require('./vendors/notificationFx/ns-style-bar.css')
+require('./vendors/notificationFx/ns-style-growl.css')
+// require('./vendors/notificationFx/ns-style-other.css')
+
+/**
+ * JS
+ */
+// require('./vendors/notificationFx/snap.svg-min')
+window.classie = require('./vendors/notificationFx/classie')
+require('./vendors/notificationFx/notificationFx')
 
 /**
  * Vue App

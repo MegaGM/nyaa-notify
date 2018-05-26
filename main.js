@@ -10,7 +10,7 @@ const
 let
   w, // BrowserWindow
   store = require('./src/makeStore')(),
-  cycle = new qCycle({ stepTime: 5, debug: false })
+  cycle = new qCycle({ stepTime: 10, debug: false })
 
 console.info('store.path: ', store.path)
 
@@ -27,7 +27,7 @@ app.on('ready', () => {
   // console.info('getAppMetrics: ', app.getAppMetrics())
   createWindow()
   ipcMain.on('download-torrent', (event, link) => {
-    return download(BrowserWindow.getFocusedWindow(), link)
+    return download(BrowserWindow.getFocusedWindow() || w, link)
       .then(dl => dl.getSavePath())
       .then(torrentFile => execAsync(`./src/downloadAndOpenTorrent.sh "${torrentFile}"`))
       .then(exitCode => {
@@ -35,13 +35,19 @@ app.on('ready', () => {
       })
       .catch(console.error);
   })
-  cycle.setJob(updateRandomAnime)
+  cycle.setJob(updateSequentialAnime)
   cycle.start()
 })
 app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit())
 app.on('activate', () => w === null && createWindow())
 
+function updateSequentialAnime() {
+  console.info('updateSequentialAnime')
+  w.webContents.send('update-sequential-anime')
+}
+
 function updateRandomAnime() {
+  console.info('updateRandomAnime')
   w.webContents.send('update-random-anime')
 }
 

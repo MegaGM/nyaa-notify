@@ -9,5 +9,6 @@ export default class Anime {
     this.size = o['nyaa:size']
     this.q = opts.q
     this.new = opts.new
+    this.downloaded = opts.downloaded
   }
 }

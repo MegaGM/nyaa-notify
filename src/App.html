@@ -7,8 +7,9 @@
               wrap
               text-xs-center>
       <v-flex xs10
-              offset-xs1>
-        <span class="display-1">Nyaa Manager</span>
+              offset-xs1
+              class="mt-4 mb-3">
+        <span class="display-1"><b>Nyaasi</b>~~ =( ^^,)=</span>
       </v-flex>
       <v-flex xs10="xs10"
               offset-xs1="offset-xs1">
@@ -124,13 +125,17 @@
                     :pagination.sync="pagination"
                     :rows-per-page-items="pagination.rppi"
                     :rows-per-page-text="'Items per page: '"
-                    class="elevation-1">
+                    class="elevation-10">
         <template slot="items"
-                  slot-scope="props">
-          <td>{{ props.item.title }}</td>
-          <td class="text-xs-left">{{ props.item.size }}</td>
-          <td class="text-xs-left">{{ props.item.time | humanizeTime }}</td>
-          <td v-if="!isTabActive('search')"
+                  slot-scope="props"
+                  class="meow">
+          <td :class="{ downloaded: props.item.downloaded }">{{ props.item.title }}</td>
+          <td :class="{ downloaded: props.item.downloaded }"
+              class="text-xs-left">{{ props.item.size }}</td>
+          <td :class="{ downloaded: props.item.downloaded }"
+              class="text-xs-left">{{ props.item.time | humanizeTime }}</td>
+          <td :class="{ downloaded: props.item.downloaded }"
+              v-if="!isTabActive('search')"
               class="justify-center layout px-0">
             <v-btn icon
                    flat

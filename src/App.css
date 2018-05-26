@@ -1,5 +1,33 @@
 html {
-		/* overflow-y: hidden; */
-		/* overflow-x: hidden; */
-		/* overflow: auto; */
+  /* overflow-y: hidden; */
+  /* overflow-x: hidden; */
+  /* overflow: auto; */
+}
+
+.downloaded {
+  background: #dfe3fb;
+}
+
+.ns-type-notice {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+
+.ns-type-success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+
+.ns-type-warning {
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+
+.ns-type-error {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
 }
