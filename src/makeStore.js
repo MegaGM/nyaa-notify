@@ -6,7 +6,7 @@ module.exports = makeStore
 function makeStore(options = {}) {
   let { name, dir } = options
   if (!name)
-    name = 'nyaa-ez-database'
+    name = 'nyaa-manager-database'
   if (!dir)
     dir = process.platform === 'win32' ?
     'C:/gd/nyaa' : '/new/gd/nyaa'
