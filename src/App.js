@@ -19,7 +19,8 @@ export default {
       db: { anime: [] },
       currentTab: null,
       currentQuality: null,
-      qualityA: ['1440p', '1080p', '720p', '480p'],
+      searchQuality: ['720p'],
+      availableQuality: ['1440p', '1080p', '720p', '480p'],
       searchResults: [],
       initialUpdatePercents: 0,
       tabs: [
@@ -52,7 +53,11 @@ export default {
     this.db = store.get('db')
     if (!this.db.anime)
       this.db.anime = []
-    this.currentQuality = this.db.currentQuality || '720p'
+
+    if (this.db.currentTab)
+      this.currentTab = this.db.currentTab
+
+    this.searchQuality = this.db.searchQuality || ['720p']
     this.pagination.sortBy = 'time'
 
     ipcRenderer.on('update-random-anime', this.updateRandomAnime)
@@ -67,7 +72,7 @@ export default {
       return d.toLocaleString()
     },
     stripOutSubsTeamFromTitle(title) {
-      return title.replace(/^\[[^\]]+\] /, '')
+      return (title || '').replace(/^\[[^\]]+\] /, '')
     },
   },
   methods: {
@@ -140,6 +145,13 @@ export default {
     },
     isTabActive(title) {
       return this.currentTab === _.findIndex(this.tabs, { title }) + ''
+    },
+    switchTabs() {
+      setTimeout(() => {
+        console.info('this.currentTab', this.currentTab)
+        this.db.currentTab = this.currentTab
+        this.dbSaveToHDD()
+      }, 1000)
     },
     random(min, max) {
       return Math.floor(Math.random() * max)
@@ -235,82 +247,127 @@ export default {
       this.q = (this.q || '').toLowerCase().trim()
       if (!this.q.length)
         return
-      let qs = this.q + ' ' + this.currentQuality
 
-      return fetchQuery(qs)
-        .then(fetchedItems => {
-          this.searchResults = fetchedItems.map(i => new Anime(i, { q: qs }))
+      if (this.searchQuality.length) {
+        return Promise
+          .map(this.searchQuality, quality => {
+            let qs = this.q + ' ' + quality
+            return fetchQuery(qs)
+              .then(fetchedItems => fetchedItems.map(
+                i => new Anime(i, {
+                  q: this.q,
+                  new: true,
+                })))
+          })
+          .then(fetchedAnimeArray => {
+            let searchResults = []
+            fetchedAnimeArray.forEach(fetchedAnime =>
+              Array.prototype.push.apply(searchResults, fetchedAnime))
+
+            this.searchResults = searchResults
+          })
+      } else {
+        let qs = this.q
+        return fetchQuery(qs).then(fetchedItems => {
+          let fetchedAnime = fetchedItems.map(i => new Anime(i, { q: qs }))
+          this.searchResults = fetchedAnime
         })
+      }
     },
     addAnime(e) {
       this.q = (this.q || '').toLowerCase().trim()
-      if (!this.q.length)
+      if (!this.q.length) // if empty search query
         return
-      let qs = this.q + ' ' + this.currentQuality
-      this.updateAnime(qs)
 
-      let notification = new NotificationFx({
-        message: `<span class="icon"><i class="material-icons">verified_user</i></span>
+      // if such animeQ already present in db
+      let qIndex = _.findIndex(this.db.anime, { q: this.q })
+      if (qIndex >= 0)
+        return
+
+      let animeQ = {
+        q: this.q,
+        quality: this.searchQuality,
+        items: [],
+      }
+
+      return Promise.map(this.searchQuality, quality => {
+          return fetchQuery(this.q + ' ' + quality)
+            .then(fetchedItems => {
+              if (!fetchedItems.length) {
+                if (fetchedItems['nyaa:seeders'])
+                  fetchedItems = [fetchedItems]
+                else
+                  return console.error('No items are found', fetchedItems)
+              }
+
+              let fetchedAnime = fetchedItems.map(i => new Anime(i, { q: this.q, new: true }))
+              Array.prototype.push.apply(animeQ.items, fetchedAnime)
+            })
+        })
+        .then(() => {
+          this.db.anime.push(animeQ)
+
+          let notification = new NotificationFx({
+            message: `<span class="icon"><i class="material-icons">verified_user</i></span>
         <p>${this.q} has been added!</p>`,
-        // layout type: growl|attached|bar|other
-        layout: 'bar',
+            // layout type: growl|attached|bar|other
+            layout: 'bar',
 
-        // for growl layout: scale|slide|genie|jelly
-        // for attached layout: flip|bouncyflip
-        // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
-        effect: 'slidetop',
+            // for growl layout: scale|slide|genie|jelly
+            // for attached layout: flip|bouncyflip
+            // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
+            effect: 'slidetop',
 
-        // notice, warning, error, success
-        // will add class ns-type-warning, ns-type-error or ns-type-success
-        type: 'success', // notice, warning or error
-        ttl: 1488,
-        onClose: function () { return false; },
-        onOpen: function () { return false; }
-      })
-      notification.show()
+            // notice, warning, error, success
+            // will add class ns-type-warning, ns-type-error or ns-type-success
+            type: 'success', // notice, warning or error
+            ttl: 1488,
+            onClose: function () { return false; },
+            onOpen: function () { return false; }
+          })
+          notification.show()
+        })
     },
     updateAnime(qs) {
-      console.info('what is qs: ', qs)
-      if (this.isTabActive('search'))
-        this.searchAnime()
+      let
+        foundIndex = _.findIndex(this.db.anime, { q: qs }),
+        animeQ = this.db.anime[foundIndex]
 
-      return fetchQuery(qs)
-        .then(fetchedItems => {
-          const now = (new Date()).getTime()
-          // TODO: show in gui
-          if (!fetchedItems.length)
-            return console.error('No items are found')
+      if (!animeQ)
+        throw new Error(`no animeQ in database, while updateAnime()`)
 
-          let
-            animeQ,
-            foundIndex = _.findIndex(this.db.anime, { q: qs })
+      console.info('updateAnime() animeQ', animeQ)
+      return Promise
+        .map(animeQ.quality || ['720p'], quality => {
+          console.info('qs+quality', qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
 
-          if (foundIndex > -1) {
-            animeQ = this.db.anime[foundIndex]
-          } else {
-            animeQ = {
-              q: qs,
-              items: fetchedItems.map(i => new Anime(i, { q: qs, new: true }))
-            }
-            this.db.anime.push(animeQ)
-            this.dbSaveToHDD()
-            foundIndex = _.findIndex(this.db.anime, { q: qs })
-          }
+          return fetchQuery(qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
+            .then(fetchedItems => {
+              const now = (new Date()).getTime()
+              // TODO: show in gui
 
-          let latest = (_.maxBy(animeQ.items, a => a.time)).time
+              if (!fetchedItems.length) {
+                if (fetchedItems['nyaa:seeders'])
+                  fetchedItems = [fetchedItems]
+                else
+                  return console.error('No items are found', fetchedItems)
+              }
 
-          fetchedItems.forEach(i => {
-            let a = new Anime(i, { q: qs, new: true })
-            if (a.time > latest)
-              animeQ.items.push(a)
+              let latest = (_.maxBy(animeQ.items, a => a.time) || { time: 0 }).time
 
-            let itemIndex = _.findIndex(animeQ.items, { link: a.link })
-            if (+itemIndex > -1)
-              animeQ.items[itemIndex].seeds = a.seeds
+              fetchedItems.forEach(i => {
+                let a = new Anime(i, { q: qs, new: true })
+                if (a.time > latest)
+                  animeQ.items.push(a)
 
-            this.db.anime[foundIndex] = animeQ
-          })
-
+                let itemIndex = _.findIndex(animeQ.items, { link: a.link })
+                if (+itemIndex > -1)
+                  animeQ.items[itemIndex].seeds = a.seeds
+              })
+            })
+        })
+        .then(() => {
+          this.db.anime[foundIndex] = animeQ
           this.dbSaveToHDD()
         })
     },
@@ -320,6 +377,29 @@ export default {
       if (!newVal)
         return
       this.q = newVal.toLowerCase().trim()
+    },
+    searchQuality(newVal, oldVal) {
+      if (newVal.length) {
+        this.db.searchQuality = newVal
+        this.dbSaveToHDD()
+      } else {
+        let notification = new NotificationFx({
+          message: `<p><span class="icon"><i class="material-icons">error_outline</i></span> Error: at least one quality options should be present</p>`,
+          // layout type: growl|attached|bar|other
+          layout: 'growl',
+
+          // for growl layout: scale|slide|genie|jelly
+          // for attached layout: flip|bouncyflip
+          // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
+          effect: 'jelly',
+
+          // notice, warning, error, success
+          // will add class ns-type-warning, ns-type-error or ns-type-success
+          type: 'error', // notice, warning or error
+          ttl: 4088,
+        })
+        notification.show()
+      }
     },
   },
 }

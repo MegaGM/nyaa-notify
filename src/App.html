@@ -19,7 +19,8 @@
                 centered>
           <v-tabs-slider color="yellow"></v-tabs-slider>
           <v-tab v-for="tab in tabs"
-                 :key="tab.title">
+                 :key="tab.title"
+                 @click="switchTabs(tab)">
             {{ tab.title }}
           </v-tab>
         </v-tabs>
@@ -49,10 +50,11 @@
                 sm2
                 offset-sm0>
           <v-select box
-                    :items="qualityA"
-                    v-model="currentQuality"
-                    @input="onChangeQuality"
+                    multiple
                     label="Quality"
+                    :items="availableQuality"
+                    v-model="searchQuality"
+                    @input="onChangeQuality"
                     append-icon="switch_video"
                     hide-details></v-select>
         </v-flex>

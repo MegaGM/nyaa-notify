@@ -13,6 +13,7 @@ require('./vendors/notificationFx/ns-style-growl.css')
 /**
  * JS
  */
+window.Promise = require('bluebird')
 // require('./vendors/notificationFx/snap.svg-min')
 window.classie = require('./vendors/notificationFx/classie')
 require('./vendors/notificationFx/notificationFx')
