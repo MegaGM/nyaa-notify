@@ -1,8 +1,10 @@
 const version = require('../package.json').version
 import { ipcRenderer } from 'electron'
 import _ from 'lodash'
+import distanceInWordsStrict from 'date-fns/distance_in_words_strict'
 import { fetchQuery } from '../api'
 import Anime from './Anime'
+const timeSince = require('./timeSince')
 
 let store = require('./makeStore')()
 console.info(`NyaaNotify v${version}`)
@@ -339,7 +341,7 @@ export default {
       console.info('updateAnime() animeQ', animeQ)
       return Promise
         .map(animeQ.quality || ['720p'], quality => {
-          console.info('qs+quality', qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
+          // console.info('qs+quality', qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
 
           return fetchQuery(qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
             .then(fetchedItems => {
@@ -361,8 +363,12 @@ export default {
                   animeQ.items.push(a)
 
                 let itemIndex = _.findIndex(animeQ.items, { link: a.link })
-                if (+itemIndex > -1)
+                if (+itemIndex > -1) {
                   animeQ.items[itemIndex].seeds = a.seeds
+                  let timesince = timeSince(a.time)
+                  console.info(timesince, (new Date().getTime()), a.time)
+                  animeQ.items[itemIndex].timesince = a.timesince || timesince
+                }
               })
             })
         })

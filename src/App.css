@@ -13,7 +13,8 @@ html {
 }
 
 .downloaded {
-  background: #dfe3fb;
+  /* background: #b4ffe5; */
+  background-color: #8dffc2;
 }
 
 .ns-type-notice {

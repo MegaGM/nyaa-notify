@@ -23,9 +23,20 @@ require('./vendors/notificationFx/notificationFx')
  */
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+import VueTimeago from 'vue-timeago'
 import App from './App.vue'
 
 Vue.use(Vuetify)
+
+Vue.use(VueTimeago, {
+  name: 'Timeago', // Component name, `Timeago` by default
+  locale: undefined, // Default locale
+  // locales: {
+  //   'zh-CN': require('date-fns/locale/zh_cn'),
+  //   'ja': require('date-fns/locale/ja'),
+  // },
+})
+
 /**
  * Init 1
  */
