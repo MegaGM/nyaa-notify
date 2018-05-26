@@ -4,6 +4,14 @@ html {
   /* overflow: auto; */
 }
 
+.application {
+  font-family: sans-serif;
+}
+
+.application table.table tbody td {
+  font-size: 15px;
+}
+
 .downloaded {
   background: #dfe3fb;
 }
