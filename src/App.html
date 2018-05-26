@@ -129,7 +129,7 @@
         <template slot="items"
                   slot-scope="props"
                   class="meow">
-          <td :class="{ downloaded: props.item.downloaded }">{{ props.item.title }}</td>
+          <td :class="{ downloaded: props.item.downloaded }">{{ props.item.title | stripOutSubsTeamFromTitle }}</td>
           <td :class="{ downloaded: props.item.downloaded }"
               class="text-xs-left">{{ props.item.size }}</td>
           <td :class="{ downloaded: props.item.downloaded }"

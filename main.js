@@ -10,7 +10,7 @@ const
 let
   w, // BrowserWindow
   store = require('./src/makeStore')(),
-  cycle = new qCycle({ stepTime: 10, debug: false })
+  cycle = new qCycle({ stepTime: 5, debug: false })
 
 console.info('store.path: ', store.path)
 

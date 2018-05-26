@@ -55,16 +55,43 @@ export default {
     this.pagination.sortBy = 'time'
 
     ipcRenderer.on('update-random-anime', this.updateRandomAnime)
-    ipcRenderer.on('update-sequential-anime', this.updateSequentialAnime)
-    let l = this.db.anime.length
-    if (l > 0) {
+    ipcRenderer.on('update-sequential-anime', this.updateAllAnimeSequential)
+
+    this.updateAnimeInitial()
+  },
+  filters: {
+    humanizeTime(timestamp) {
+      let d = new Date(timestamp)
+      // return d.toDateString() + ' ' + d.toLocaleTimeString()
+      return d.toLocaleString()
+    },
+    stripOutSubsTeamFromTitle(title) {
+      return title.replace(/^\[[^\]]+\] /, '')
+    },
+  },
+  methods: {
+    updateAnimeInitial() {
+      let l = this.db.anime.length
+      if (!l)
+        return
+
+      let
+        now = (new Date()).getTime(),
+        lastTimestamp = +localStorage.getItem('last-timestamp')
+
+      // if have passed less than 2 mins since last call
+      if (lastTimestamp && (lastTimestamp + (1000 * 60 * 2) > now))
+        return
+
+      // if have passed more
+      localStorage.setItem('last-timestamp', now)
       this.db.anime.forEach((animeQ, index) => {
         setTimeout(() => {
           this.updateAnime(animeQ.q)
           if (index === l - 1) {
             let notification = new NotificationFx({
               message: `<span class="icon"><i class="material-icons">verified_user</i></span>
-        <p>All anime have been updated!</p>`,
+<p>AnimeDB is up to date o/</p>`,
               // layout type: growl|attached|bar|other
               layout: 'bar',
 
@@ -76,40 +103,35 @@ export default {
               // notice, warning, error, success
               // will add class ns-type-warning, ns-type-error or ns-type-success
               type: 'success', // notice, warning or error
-              ttl: 1488,
-              onClose: function () { return false; },
-              onOpen: function () { return false; }
+              ttl: 7077,
+              onClose: function () {
+                console.info('AnimeDB is up to date o/')
+                return false
+              },
+              onOpen: function () { return false }
             })
             notification.show()
           }
         }, ((index + 1) * 1000))
       })
-    }
-  },
-  filters: {
-    humanizeTime(timestamp) {
-      let d = new Date(timestamp)
-      // return d.toDateString() + ' ' + d.toLocaleTimeString()
-      return d.toLocaleString()
     },
-  },
-  methods: {
-    updateSequentialAnime() {
+    updateAllAnimeSequential() {
       if (!this.db.anime.length)
         return
 
-      if (!this.lastUpdatedAnimeIndex && this.lastUpdatedAnimeIndex !== 0)
-        this.lastUpdatedAnimeIndex = -1
+      let i = +localStorage.getItem('last-updated-anime-index')
+      if (!i && i !== 0)
+        i = -1
 
-      {++this.lastUpdatedAnimeIndex }
-      if (this.lastUpdatedAnimeIndex > this.db.anime.length)
-        this.lastUpdatedAnimeIndex = 0
+      if (++i >= this.db.anime.length)
+        i = 0
 
-      this.updateAnime(this.db.anime[this.lastUpdatedAnimeIndex].q)
+      localStorage.setItem('last-updated-anime-index', i)
+      this.updateAnime(this.db.anime[i].q)
     },
     updateRandomAnime(event, data) {
       if (this.db.anime.length > 0)
-        this.updateAnime(this.db.anime[this.random(0, 1)].q)
+        this.updateAnime(this.db.anime[this.random(0, this.db.anime.length)].q)
     },
     isTabActive(title) {
       return this.currentTab === _.findIndex(this.tabs, { title }) + ''
@@ -272,6 +294,15 @@ export default {
               this.db.anime[foundIndex] = animeQ
               this.dbSaveToHDD()
             }
+          })
+
+          fetchedItems.forEach(i => {
+            let a = new Anime(i, { q: qs })
+            let foundIndex = _.findIndex(this.db.anime, { q: qs })
+            this.db.anime[foundIndex].items.forEach(item => {
+              item.seeds = a.seeds
+              this.dbSaveToHDD()
+            })
           })
         })
     },
