@@ -1,6 +1,7 @@
 'use strict'
 const Promise = require('bluebird')
 const qualityRegex = /(.+) (480p|720p|1080p|1440p)/
+const _ = require('lodash')
 
 const
   path = require('path'),
@@ -64,7 +65,30 @@ class DBMixer {
     console.info('DBBB: ', this.db)
     this.dbSaveToHDD()
   }
+
+  removeDuplicates() {
+    let
+      anime = this.db.anime
+
+    this.db.anime = anime.map(animeQ => {
+      animeQ.items = animeQ.items.map((a, i) => {
+        let
+          foundIndex = _.findIndex(animeQ.items, { link: a.link }),
+          duplicate = i !== foundIndex
+
+        if (duplicate)
+          console.info('duplicate: ', a.title)
+        if (!duplicate)
+          return a
+      })
+      animeQ.items = _.compact(animeQ.items)
+
+      return animeQ
+    })
+    console.info(this.db.anime)
+
+    this.dbSaveToHDD()
+  }
 }
 
 const db = new DBMixer()
-db.mess()

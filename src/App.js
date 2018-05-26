@@ -78,7 +78,8 @@ export default {
     },
   },
   methods: {
-    updateAnimeInitial() {
+    updateAnimeInitial(forced) {
+      // console.info(Arguments.remoteFunction)
       let l = this.db.anime.length
       if (!l)
         return
@@ -89,7 +90,7 @@ export default {
 
       // if have passed less than 2 mins since last call
       // FIXME: /10
-      if (lastTimestamp && (lastTimestamp + (1000 * 60 * 2) > now))
+      if (!forced && lastTimestamp && (lastTimestamp + (1000 * 60 * 2) > now))
         return
 
       // if have passed more
@@ -124,10 +125,10 @@ export default {
             })
             notification.show()
           }
-        }, ((index + 1) * 500))
+        }, ((index + 1) * 1000))
       })
     },
-    updateAllAnimeSequential() {
+    updateAllAnimeSequential(auto) {
       if (!this.db.anime.length)
         return
 
@@ -140,6 +141,9 @@ export default {
 
       localStorage.setItem('last-updated-anime-index', i)
       this.updateAnime(this.db.anime[i].q)
+
+      if (!auto)
+        console.info('forced update', this.db.anime[i].q)
     },
     updateRandomAnime(event, data) {
       if (this.db.anime.length > 0)
@@ -367,7 +371,7 @@ export default {
       if (!animeQ)
         throw new Error(`no animeQ in database, while updateAnime()`)
 
-      console.info('updateAnime() animeQ', animeQ)
+      console.info('updateAnime()', qs)
       return Promise
         .map(animeQ.quality || ['720p'], quality => {
           // console.info('qs+quality', qs.replace(/480p|720p|1080p/gi, '') + ' ' + quality)
