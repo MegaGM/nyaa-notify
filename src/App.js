@@ -21,6 +21,7 @@ export default {
       currentQuality: null,
       qualityA: ['1440p', '1080p', '720p', '480p'],
       searchResults: [],
+      initialUpdatePercents: 0,
       tabs: [
         { title: 'new' },
         { title: 'all' },
@@ -80,30 +81,34 @@ export default {
         lastTimestamp = +localStorage.getItem('last-timestamp')
 
       // if have passed less than 2 mins since last call
+      // FIXME: /10
       if (lastTimestamp && (lastTimestamp + (1000 * 60 * 2) > now))
         return
 
       // if have passed more
       localStorage.setItem('last-timestamp', now)
+      this.initialUpdatePercents = 0
+      let piece = 100 / l
       this.db.anime.forEach((animeQ, index) => {
         setTimeout(() => {
           this.updateAnime(animeQ.q)
+          this.initialUpdatePercents += piece
           if (index === l - 1) {
+            this.initialUpdatePercents = 0
             let notification = new NotificationFx({
-              message: `<span class="icon"><i class="material-icons">verified_user</i></span>
-<p>AnimeDB is up to date o/</p>`,
+              message: `<p><span class="icon"><i class="material-icons">verified_user</i></span> AnimeDB is up to date o/</p>`,
               // layout type: growl|attached|bar|other
-              layout: 'bar',
+              layout: 'growl',
 
               // for growl layout: scale|slide|genie|jelly
               // for attached layout: flip|bouncyflip
               // for other layout: boxspinner|cornerexpand|loadingcircle|thumbslider
-              effect: 'slidetop',
+              effect: 'jelly',
 
               // notice, warning, error, success
               // will add class ns-type-warning, ns-type-error or ns-type-success
               type: 'success', // notice, warning or error
-              ttl: 7077,
+              ttl: 2077,
               onClose: function () {
                 console.info('AnimeDB is up to date o/')
                 return false
@@ -112,7 +117,7 @@ export default {
             })
             notification.show()
           }
-        }, ((index + 1) * 1000))
+        }, ((index + 1) * 500))
       })
     },
     updateAllAnimeSequential() {
@@ -289,21 +294,17 @@ export default {
 
           fetchedItems.forEach(i => {
             let a = new Anime(i, { q: qs, new: true })
-            if (a.time > latest) {
+            if (a.time > latest)
               animeQ.items.push(a)
-              this.db.anime[foundIndex] = animeQ
-              this.dbSaveToHDD()
-            }
+
+            let itemIndex = _.findIndex(animeQ.items, { link: a.link })
+            if (+itemIndex > -1)
+              animeQ.items[itemIndex].seeds = a.seeds
+
+            this.db.anime[foundIndex] = animeQ
           })
 
-          fetchedItems.forEach(i => {
-            let a = new Anime(i, { q: qs })
-            let foundIndex = _.findIndex(this.db.anime, { q: qs })
-            this.db.anime[foundIndex].items.forEach(item => {
-              item.seeds = a.seeds
-              this.dbSaveToHDD()
-            })
-          })
+          this.dbSaveToHDD()
         })
     },
   },

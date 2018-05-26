@@ -39,3 +39,7 @@ html {
   background-color: #f2dede;
   border-color: #ebccd1;
 }
+
+.progress-linear {
+  position: fixed;
+}

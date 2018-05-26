@@ -1,14 +1,15 @@
 <v-app id="nyaa">
+
   <v-card flat="flat"
           dark="dark"
           img="./assets/nyaabg.jpg"
-          color="black">
+          color="transparent">
     <v-layout row
               wrap
               text-xs-center>
       <v-flex xs10
               offset-xs1
-              class="mt-4 mb-3">
+              class="mt-5 mb-3">
         <span class="display-1"><b>Nyaasi</b>~~ =( ^^,)=</span>
       </v-flex>
       <v-flex xs10="xs10"
@@ -24,7 +25,7 @@
         </v-tabs>
       </v-flex>
     </v-layout>
-    <v-card v-if="isTabActive('search')"
+    <v-card v-show="isTabActive('search')"
             flat="flat"
             dark="dark"
             color="transparent">
@@ -70,6 +71,16 @@
     </v-card>
   </v-card>
 
+
+  <template v-if="initialUpdatePercents"
+            fixed
+            bottom
+            id="hideandseek">
+    <v-progress-linear background-color="transparent"
+                       color="accent"
+                       height="1"
+                       v-model="initialUpdatePercents"></v-progress-linear>
+  </template>
 
   <v-tabs-items v-model="currentTab">
     <v-tab-item v-for="tab in tabs"
