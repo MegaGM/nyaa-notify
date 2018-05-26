@@ -9,22 +9,16 @@ const
   { app, BrowserWindow, ipcMain } = require('electron')
 let
   w, // BrowserWindow
-  cycle = new qCycle({ stepTime: 5, debug: false }),
-  store = new(require('conf'))({
-    // cwd: app.getPath('userData'),
-    configName: 'database',
-    suffix: '',
-  })
-if (!store.has('db'))
-  store.set('db', {})
-if (!store.has('db.anime'))
-  store.set('db.anime', [])
+  store = require('./src/makeStore')(),
+  cycle = new qCycle({ stepTime: 5, debug: false })
+
+console.info('store.path: ', store.path)
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist')
 app.on('ready', () => {
   app.makeSingleInstance(() => {})
   // require('devtron').install()
-  // console.info('appData: ', app.getPath('appData'))
+  console.info('appData: ', app.getPath('appData'))
   // console.info('getGPUFeatureStatus: ', app.getGPUFeatureStatus())
   // console.info('userData: ', app.getPath('userData'))
   // console.info('getAppPath: ', app.getAppPath())
@@ -57,11 +51,11 @@ function createWindow() {
     // frame: false,
     // transparent: true,
     autoHideMenuBar: true,
-    // skipTaskbar: true,
+    // skipTaskbar: false,
     // kiosk: true,
     // icon: 'sf',
     scrollBounce: true,
-    icon: 'assets/icons/png/256x256.png',
+    // icon: 'assets/icons/png/512x512.png',
   }
 
   let wBounds = store.get('db.mainWindowBounds') || {

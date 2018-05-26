@@ -1,151 +1,157 @@
-<div>
-	<v-app id="nyaa">
-		<v-card flat="flat"
-		        dark="dark"
-		        color="cyan">
+<v-app id="nyaa">
+  <v-card flat="flat"
+          dark="dark"
+          img="./assets/nyaabg.jpg"
+          color="black">
+    <v-layout row
+              wrap
+              text-xs-center>
+      <v-flex xs10
+              offset-xs1>
+        <span class="display-1">Nyaa Manager</span>
+      </v-flex>
+      <v-flex xs10="xs10"
+              offset-xs1="offset-xs1">
+        <v-tabs color="transparent"
+                v-model="currentTab"
+                centered>
+          <v-tabs-slider color="yellow"></v-tabs-slider>
+          <v-tab v-for="tab in tabs"
+                 :key="tab.title">
+            {{ tab.title }}
+          </v-tab>
+        </v-tabs>
+      </v-flex>
+    </v-layout>
+    <v-card v-if="isTabActive('search')"
+            flat="flat"
+            dark="dark"
+            color="transparent">
+      <v-layout row
+                wrap
+                text-xs-center>
+        <v-flex xs10
+                offset-xs1
+                sm6
+                offset-sm1>
+          <v-text-field clearable
+                        hide-details
+                        name="add-new"
+                        prepend-icon="video_library"
+                        label="Add a new anime"
+                        @keyup.enter="searchAnime"
+                        v-model="q"></v-text-field>
+        </v-flex>
+        <v-flex xs10
+                offset-xs1
+                sm2
+                offset-sm0>
+          <v-select box
+                    :items="qualityA"
+                    v-model="currentQuality"
+                    @input="onChangeQuality"
+                    label="Quality"
+                    append-icon="switch_video"
+                    hide-details></v-select>
+        </v-flex>
+        <v-flex xs10
+                offset-xs1
+                sm2
+                offset-sm0>
+          <v-btn outline
+                 fab
+                 @click="addAnime"
+                 color="white">
+            <v-icon>playlist_add</v-icon>
+          </v-btn>
+        </v-flex>
+      </v-layout>
+    </v-card>
+  </v-card>
 
-			<v-layout row
-			          wrap
-			          text-xs-center>
-				<v-flex xs10
-				        offset-xs1>
-					<span class="display-1">Nyaa Notify!</span>
-				</v-flex>
-				<v-flex xs10="xs10"
-				        offset-xs1="offset-xs1">
-					<v-tabs color="cyan"
-					        v-model="currentTab"
-					        centered>
-						<v-tabs-slider color="yellow"></v-tabs-slider>
-						<v-tab v-for="tab in tabs"
-						       :key="tab.title">
-							{{ tab.title }}
-						</v-tab>
-					</v-tabs>
-				</v-flex>
-			</v-layout>
-		</v-card>
 
-		<v-card v-if="isTabActive('search')"
-		        flat="flat"
-		        dark="dark"
-		        color="cyan">
-			<v-layout row
-			          wrap
-			          text-xs-center>
-				<v-flex xs10
-				        offset-xs1
-				        sm6
-				        offset-sm1>
-					<v-text-field clearable
-					              hide-details
-					              name="add-new"
-					              prepend-icon="video_library"
-					              label="Add a new anime"
-					              @keyup.enter="searchAnime"
-					              v-model="q"></v-text-field>
-				</v-flex>
-				<v-flex xs10
-				        offset-xs1
-				        sm2
-				        offset-sm0>
-					<v-select box
-					          :items="qualityA"
-					          v-model="currentQuality"
-					          @input="onChangeQuality"
-					          label="Quality"
-					          append-icon="switch_video"
-					          hide-details></v-select>
-				</v-flex>
-				<v-flex xs10
-				        offset-xs1
-				        sm2
-				        offset-sm0>
-					<v-btn outline
-					       fab
-					       @click="addAnime"
-					       color="white">
-						<v-icon>playlist_add</v-icon>
-					</v-btn>
-				</v-flex>
-			</v-layout>
-		</v-card>
+  <v-tabs-items v-model="currentTab">
+    <v-tab-item v-for="tab in tabs"
+                :key="tab.title">
 
-		<v-tabs-items v-model="currentTab">
-			<v-tab-item v-for="tab in tabs"
-			            :key="tab.title">
+      <v-data-table v-if="tab.title === 'all'"
+                    :headers="getAnimeTableHeaders('queries')"
+                    :items="getAnime('queries')"
+                    :pagination.sync="pagination"
+                    :rows-per-page-items="pagination.rppi"
+                    :rows-per-page-text="'Items per page: '"
+                    class="elevation-1">
+        <template slot="items"
+                  slot-scope="props">
+          <td>{{ props.item.q }}</td>
+          <td class="justify-center layout px-0">
+            <v-btn icon
+                   flat
+                   class="mx-0"
+                   color="red"
+                   @click="removeAnime(props.item)">
+              <v-icon>delete_forever</v-icon>
+            </v-btn>
+            <v-btn icon
+                   flat
+                   class="mx-0"
+                   @click="markAll(props.item)">
+              <v-icon color="teal">collections_bookmark</v-icon>
+            </v-btn>
+          </td>
+        </template>
+        <template slot="no-data">
+          No results
+        </template>
+      </v-data-table>
 
-				<v-data-table v-if="tab.title === 'all'"
-				              :headers="getAnimeTableHeaders('queries')"
-				              :items="getAnime('queries')"
-				              :pagination.sync="pagination"
-				              :rows-per-page-items="pagination.rppi"
-				              :rows-per-page-text="'Items per page: '"
-				              class="elevation-1">
-					<template slot="items"
-					          slot-scope="props">
-						<td class="justify-center layout px-0">
-							<v-btn flat
-							       class="mx-0"
-							       color="red"
-							       @click="removeAnime(props.item)">
-								<v-icon>delete_forever</v-icon>
-								{{ props.item.q }}</v-btn>
-						</td>
-					</template>
-					<template slot="no-data">
-						No results
-					</template>
-				</v-data-table>
+      <v-layout v-if="tab.title === 'all' && dev()"
+                row
+                wrap
+                text-xs-center>
+        <v-flex xs10
+                offset-xs1>
+          <v-btn color="error"
+                 @click="resetAnimeDB">
+            <v-icon dark
+                    left>not_interested</v-icon>Reset Anime DB
+          </v-btn>
+        </v-flex>
+      </v-layout>
 
-				<v-layout v-if="tab.title === 'all'"
-				          row
-				          wrap
-				          text-xs-center>
-					<v-flex xs10
-					        offset-xs1>
-						<v-btn color="error"
-						       @click="resetAnimeDB">
-							<v-icon dark
-							        left>not_interested</v-icon>Reset Anime DB
-						</v-btn>
-					</v-flex>
-				</v-layout>
+      <v-data-table :headers="getAnimeTableHeaders(tab.title)"
+                    :items="getAnime(tab.title)"
+                    :pagination.sync="pagination"
+                    :rows-per-page-items="pagination.rppi"
+                    :rows-per-page-text="'Items per page: '"
+                    class="elevation-1">
+        <template slot="items"
+                  slot-scope="props">
+          <td>{{ props.item.title }}</td>
+          <td class="text-xs-left">{{ props.item.size }}</td>
+          <td class="text-xs-left">{{ props.item.time | humanizeTime }}</td>
+          <td v-if="!isTabActive('search')"
+              class="justify-center layout px-0">
+            <v-btn icon
+                   flat
+                   class="mx-0"
+                   color="blue"
+                   @click="downloadAndOpenTorrent(props.item)">
+              <v-icon>file_download</v-icon>
+            </v-btn>
+            <v-btn icon
+                   flat
+                   class="mx-0"
+                   @click="toggleMark(props.item)">
+              <v-icon v-if="props.item.new"
+                      color="teal">bookmark_border</v-icon>
+              <v-icon v-else
+                      color="teal">bookmark</v-icon>
+            </v-btn>
+          </td>
+        </template>
+      </v-data-table>
 
-				<v-data-table :headers="getAnimeTableHeaders(tab.title)"
-				              :items="getAnime(tab.title)"
-				              :pagination.sync="pagination"
-				              :rows-per-page-items="pagination.rppi"
-				              :rows-per-page-text="'Items per page: '"
-				              class="elevation-1">
-					<template slot="items"
-					          slot-scope="props">
-						<td>{{ props.item.title }}</td>
-						<td class="text-xs-left">{{ props.item.size }}</td>
-						<td class="text-xs-left">{{ props.item.time | humanizeTime }}</td>
-						<td v-if="!isTabActive('search')"
-						    class="justify-center layout px-0">
-							<v-btn icon
-							       flat
-							       class="mx-0"
-							       color="blue"
-							       @click="downloadAndOpenTorrent(props.item)">
-								<v-icon>file_download</v-icon>
-							</v-btn>
-							<v-btn icon
-							       flat
-							       class="mx-0"
-							       @click="toggleMark(props.item)">
-								<v-icon v-if="props.item.new"
-								        color="teal">bookmark_border</v-icon>
-								<v-icon v-else
-								        color="teal">bookmark</v-icon>
-							</v-btn>
-						</td>
-					</template>
-				</v-data-table>
-
-			</v-tab-item>
-		</v-tabs-items>
-	</v-app>
-</div>
+    </v-tab-item>
+  </v-tabs-items>
+</v-app>

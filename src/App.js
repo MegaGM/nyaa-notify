@@ -1,15 +1,15 @@
+const version = require('../package.json').version
 import { ipcRenderer } from 'electron'
 import _ from 'lodash'
 import { fetchQuery } from '../api'
 import Anime from './Anime'
-let store = new(require('conf'))({
-  configName: 'database',
-  suffix: '',
-})
-let version = require('../package.json').version
+
+let store = require('./makeStore')()
 console.info(`NyaaNotify v${version}`)
 console.info('store.path: ', store.path)
 console.info('db: ', store.get('db'))
+console.info('process.platform: ', process.platform)
+console.info('process.env.NODE_ENV: ', process.env.NODE_ENV)
 
 export default {
   name: 'App',
@@ -104,14 +104,9 @@ export default {
           { text: 'Size', value: 'size' },
           { text: 'Date', value: 'time' },
         ]
-        if (type !== 'search')
-          animeTableHeaders.push({
-            text: 'Actions',
-            align: 'center',
-            value: 'actions',
-            sortable: false
-          })
-      } else if (type === 'queries') {
+      }
+
+      if (type === 'queries') {
         animeTableHeaders = [{
           text: 'AnimeQuery',
           align: 'left',
@@ -119,7 +114,20 @@ export default {
           value: 'q'
         }]
       }
+
+      if (type !== 'search') {
+        animeTableHeaders.push({
+          text: 'Actions',
+          align: 'center',
+          value: 'actions',
+          sortable: false
+        })
+      }
+
       return animeTableHeaders
+    },
+    dev() {
+      return process.env.NODE_ENV && process.env.NODE_ENV.startsWith('dev')
     },
     resetAnimeDB() {
       this.db.anime = []
@@ -142,6 +150,10 @@ export default {
     },
     toggleMark(anime) {
       anime.new = !anime.new
+      this.dbSaveToHDD()
+    },
+    markAll(anime) {
+      anime.items.forEach(i => i.new = false)
       this.dbSaveToHDD()
     },
     removeAnime(anime) {
